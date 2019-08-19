@@ -2,6 +2,6 @@ python: 3.6
 entrypoint: python runway_model.py
 cuda: 10.0
 build_steps:
-    - pip install runway-python opencv-python scipy
+    - pip install -r requirements.txt
     - if_cpu: pip install tensorflow
     - if_gpu: pip install tensorflow-gpu

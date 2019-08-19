@@ -1,0 +1,4 @@
+easydict
+runway-python
+opencv-python
+scipy
