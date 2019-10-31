@@ -8,6 +8,7 @@ from util.util import generate_mask_rect, generate_mask_stroke
 from net.network import GMCNNModel
 import runway
 from PIL import Image
+from scipy.misc import imresize
 
 config = TestOptions().parse()
 
@@ -45,10 +46,14 @@ def inpaint(model, inputs):
     image = np.array(image.resize((256, 256)), dtype=np.float32)
     mask = np.array(inputs['mask'].resize((256, 256)), dtype=np.float32)
     mask = np.expand_dims(mask, -1)
-    image = np.expand_dims(image, 0)
-    mask = np.expand_dims(mask, 0)
-    result = sess.run(output, feed_dict={input_image_tf: image, input_mask_tf: mask})
-    return Image.fromarray(result[0][:, :, ::-1]).resize(original_size)
+    result = sess.run(output, feed_dict={input_image_tf: np.expand_dims(image, 0), input_mask_tf: np.expand_dims(mask, 0)})
+    result = result[0][:, :, ::-1]
+    result = imresize(result, original_size[::-1])
+    mask = np.array(inputs['mask'].resize(original_size), dtype=np.float32)
+    mask = np.stack([mask, mask, mask], -1)
+    masked_result = mask * result
+    masked_result += (1 - mask) * np.array(inputs['image'])
+    return masked_result.astype(np.uint8)
 
 
 if __name__ == "__main__":
